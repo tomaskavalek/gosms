@@ -1,0 +1,27 @@
+{
+    "name": "tomaskavalek/gosms",
+    "description": "Sending messages via gosms.cz",
+    "type": "library",
+    "keywords": [
+        "sms",
+        "gosms"
+    ],
+    "license": ["MIT"],
+    "authors": [
+        {
+            "name": "Tomáš Kavalek",
+            "homepage": "http://github.com/tomaskavalek"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/tomaskavalek/gosms/issues",
+        "source": "https://github.com/tomaskavalek/gosms"
+    },
+    "require": {
+        "php": ">=5.4",
+        "tcdent/php-restclient": "^0.1.4"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
