@@ -40,3 +40,7 @@ class InvalidFormat extends GoSMSException
 class InvalidChannel extends GoSMSException
 {
 }
+
+class InvalidTimeFormat extends GoSMSException
+{
+}

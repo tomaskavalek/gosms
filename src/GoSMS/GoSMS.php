@@ -55,19 +55,19 @@ class GoSMS
     /**
      * @var array
      */
-    public $recipients;
+    protected $recipients;
     /**
      * @var string
      */
-    public $message;
+    protected $message;
     /**
      * @var integer
      */
-    public $channel;
+    protected $channel;
     /**
      * @var string
      */
-    public $expectedSendStart;
+    protected $expectedSendStart = null;
 
     /**
      * @var \RestClient
@@ -80,15 +80,15 @@ class GoSMS
 
     /**
      * GoSMS constructor.
-     * @param $clientId
-     * @param $clientSecret
-     * @param null $grantType
+     * @param string $clientId
+     * @param string $clientSecret
+     * @param null|string $grantType
      */
     public function __construct($clientId, $clientSecret, $grantType = null)
     {
-        $this->clientId = $clientId;
-        $this->clientSecret = $clientSecret;
-        $this->grantType = ! is_null($grantType) ? $grantType : self::GRANT_TYPE_DEFAULT;
+        $this->clientId = (string) $clientId;
+        $this->clientSecret = (string) $clientSecret;
+        $this->grantType = ! is_null($grantType) ? (string) $grantType : self::GRANT_TYPE_DEFAULT;
 
         $this->api = new \RestClient(
             array(
@@ -151,7 +151,6 @@ class GoSMS
             throw new GoSMSException\Another($response->error_description);
         }
 
-
         return $response;
     }
 
@@ -163,13 +162,19 @@ class GoSMS
      */
     public function test()
     {
+        $data = array(
+            'message' => $this->message,
+            'recipients' => $this->recipients,
+            'channel' => $this->channel,
+        );
+
+        if ( ! is_null($this->expectedSendStart) ) {
+            $data['expectedSendStart'] = $this->expectedSendStart;
+        }
+
         $result = $this->api->post(
             self::SERVICE_TEST_URL,
-            json_encode(array(
-                'message' => $this->message,
-                'recipients' => $this->recipients,
-                'channel' => $this->channel,
-            )),
+            json_encode($data),
             $this->getRequestTokenHeader()
         );
 
@@ -188,7 +193,6 @@ class GoSMS
 
     /**
      * Send message
-     *
      * @return null|object
      * @throws GoSMSException\Another
      * @throws GoSMSException\JSONAPIProblem
@@ -197,13 +201,19 @@ class GoSMS
      */
     public function send()
     {
+        $data = array(
+            'message' => $this->message,
+            'recipients' => $this->recipients,
+            'channel' => $this->channel,
+        );
+
+        if ( ! is_null($this->expectedSendStart) ) {
+            $data['expectedSendStart'] = $this->expectedSendStart;
+        }
+
         $result = $this->api->post(
             self::SERVICE_SEND_URL,
-            json_encode(array(
-                'message' => $this->message,
-                'recipients' => $this->recipients,
-                'channel' => $this->channel,
-            )),
+            json_encode($data),
             $this->getRequestTokenHeader()
         );
 
@@ -323,6 +333,24 @@ class GoSMS
     }
 
     /**
+     * Set date and time of expected send of message
+     * @param \DateTime|string $time
+     * @throws GoSMSException\InvalidTimeFormat
+     */
+    public function setExpectedSendTime($time)
+    {
+        if ( ! ( $time instanceof \DateTime )
+            && ! preg_match('~^[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}$~', $time)
+        ) {
+            throw new GoSMSException\InvalidTimeFormat('Invalid time format');
+        } elseif ( $time instanceof \DateTime ) {
+            $time = $time->format('c');
+        }
+
+        $this->expectedSendStart = $time;
+    }
+
+    /**
      * Parse response
      * @param $response
      * @return bool|object
@@ -340,9 +368,10 @@ class GoSMS
      * Generate request token - header
      * @return array
      */
-    private function getRequestTokenHeader() {
+    private function getRequestTokenHeader()
+    {
         return array(
-            'Content-Type' => "application/json",
+            'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $this->token,
         );
     }
