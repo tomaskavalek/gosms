@@ -115,13 +115,15 @@ class GoSMS
                 'grant_type' => $this->grantType,
             )
         );
-        
+
         $response = json_decode($result->response);
 
         if ( $result->info->http_code === 400 ) {
             throw new GoSMSException\InvalidCredentials('Bad credentials or grant_type missing');
         } elseif ( $result->info->http_code !== 200 ) {
-            throw new GoSMSException\Another($response->error_description);
+            throw new GoSMSException\Another(
+                isset($response->error_description) ? $response->error_description : $result->error
+            );
         }
 
         $this->token = $response->access_token;
